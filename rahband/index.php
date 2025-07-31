@@ -190,10 +190,17 @@
                         <!-- دکمه آپلود -->
                         <div class="col-md-3 col-6">
                             <a href="upload.php" class="btn btn-warning btn-custom w-100">
-                                <i class="fas fa-upload feature-icon"></i>آپلود فایل
+                                <i class="fas fa-upload feature-icon"></i>آپلود فایل ورودی راهبند
                             </a>
                         </div>
                         
+						 <!-- دکمه جدید: آپلود فایل خروجی -->
+                        <div class="col-md-3 col-6 mt-3">
+                            <a href="upload2.php" class="btn btn-export btn-custom w-100">
+                                <i class="fas fa-file-export feature-icon"></i>آپلود فایل خروجی
+                            </a>
+                        </div>
+						
                         <!-- دکمه حذف کاربران -->
                         <div class="col-md-3 col-6">
                             <a href="resk.php" class="btn btn-danger btn-custom w-100">
@@ -229,12 +236,7 @@
                             </a>
                         </div>
                         
-                        <!-- دکمه جدید: آپلود فایل خروجی -->
-                        <div class="col-md-3 col-6 mt-3">
-                            <a href="upload2.php" class="btn btn-export btn-custom w-100">
-                                <i class="fas fa-file-export feature-icon"></i>آپلود فایل خروجی
-                            </a>
-                        </div>
+                       
                     </div>
                 </div>
             </div>
