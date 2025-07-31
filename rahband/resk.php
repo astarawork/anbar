@@ -82,6 +82,7 @@ include_once('sar.php');
     if (isset($_POST['hazf']) && !empty($_POST['hazf'])) {
         mysqli_query($connection, "TRUNCATE TABLE rkarbar");
         mysqli_query($connection, "TRUNCATE TABLE rinfo");
+		 mysqli_query($connection, "TRUNCATE TABLE rinfo2");
         echo '<div class="alert">تمام اطلاعات حذف شد</div>';
     }
     ?>
