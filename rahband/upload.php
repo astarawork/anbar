@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 
-
 include_once('jdf.php');
 include_once('ca.php');
 
@@ -66,10 +65,9 @@ function parseXlsx($filePath) {
         
         foreach ($rows as $row) {
             $rowNumber++;
-            // رد کردن اولین ردیف (هدر)
             if ($rowNumber == 1) continue;
             
-            $rowData = ['row_num' => $rowNumber - 1]; // شماره ردیف
+            $rowData = ['row_num' => $rowNumber - 1];
             
             foreach ($row->c as $cell) {
                 $value = '';
@@ -86,7 +84,6 @@ function parseXlsx($filePath) {
                     }
                 }
                 
-                // نام ستون (A, B, C, ...)
                 $colName = preg_replace('/[0-9]/', '', (string)$cell['r']);
                 $rowData[$colName] = $value;
             }
@@ -143,11 +140,13 @@ cleanOldFiles($uploadDir, $maxFilesToKeep);
         th {
             white-space: nowrap;
         }
+        .success-row {
+            background-color: #e8f5e9;
+        }
     </style>
 </head>
 <body>
 <?php
-
 include_once('aval.php');
 ?>
     <div class="upload-container">
@@ -167,7 +166,7 @@ include_once('aval.php');
                 try {
                     // بررسی خطاهای آپلود
                     if ($_FILES['excel_file']['error'] !== UPLOAD_ERR_OK) {
-                        throw new Exception('خطا در آپلود فایل');
+                        throw new Exception('خطا در آپلود فایل: کد خطا ' . $_FILES['excel_file']['error']);
                     }
 
                     // بررسی نوع فایل
@@ -193,105 +192,125 @@ include_once('aval.php');
                     if (empty($processedData)) {
                         echo '<div class="alert alert-warning">فایل اکسل خالی است یا قابل پردازش نمی‌باشد</div>';
                     } else {
-                        echo '<div class="file-info">
-                                <span class="badge bg-primary">تعداد ردیف‌ها: ' . count($processedData) . '</span>
-                                <span class="badge bg-primary ms-2">تعداد ستون‌ها: ' . 
-                                (isset($processedData[0]) ? count($processedData[0]) - 1 : 0) . '</span>
-                              </div>';
+                        // خالی کردن جدول rinfo قبل از درج رکوردهای جدید
+                        mysqli_query($connection, "TRUNCATE TABLE rinfo");
+                        
+                        // آرایه برای ذخیره رکوردهای معتبر
+                        $validRecords = [];
+                        $insertedCount = 0;
                         
                         echo '<div class="table-responsive table-container">
-                                <table class="table table-striped table-bordered table-hover">
+                                <table class="table table-bordered table-hover">
                                     <thead class="table-dark">
                                         <tr>
                                             <th>ردیف</th>';
                         
-                        // نمایش هدر ستون‌ها (به جز ستون row_num)
+                        // نمایش هدر ستون‌ها
                         if (!empty($processedData[0])) {
                             foreach ($processedData[0] as $colName => $value) {
                                 if ($colName !== 'row_num') {
                                     echo '<th>' . htmlspecialchars($colName) . '</th>';
                                 }
                             }
+                            echo '<th>وضعیت</th>';
                         }
                         
                         echo '            </tr>
                                     </thead>
                                     <tbody>';
                         
-                        // نمایش داده‌ها
+                        // پردازش و نمایش داده‌ها
                         foreach ($processedData as $row) {
-                            echo '<tr>
-                                    <td>' . htmlspecialchars($row['row_num']) . '</td>';
-                            
-                            foreach ($row as $colName => $value) {
-                                if ($colName !== 'row_num') {
-                                    echo '<td>' . htmlspecialchars($value) . '</td>';
+                            $keys = array_keys($row);
+                            if (isset($keys[1])) {
+                                $pelak = trim($row[$keys[1]]);
+                                
+                                // اعتبارسنجی پلاک
+                                $isValid = !is_null($pelak) && 
+                                    $pelak !== '' && 
+                                    strlen($pelak) >= 3 &&
+                                    preg_match('/^[\p{L}\p{N}]+$/u', $pelak);
+                                
+                                if ($isValid && isset($keys[2]) && isset($keys[3])) {
+                                    // پردازش تاریخ و زمان
+                                    $tarikh2 = "14" . $row[$keys[2]];
+                                    $mytar = explode('/', $tarikh2);
+                                    
+                                    if (count($mytar) === 3) {
+                                        $sal = $mytar[0];
+                                        $mah = $mytar[1];
+                                        $ruz = $mytar[2];
+                                        
+                                        $saat = $row[$keys[3]];
+                                        $mysa = explode(':', $saat);
+                                        
+                                        if (count($mysa) >= 2) {
+                                            $saat = $mysa[0];
+                                            $dag = $mysa[1];
+                                            
+                                            // تبدیل به تایمستاپ
+                                            $fuda = jmktime($saat, $dag, 0, $mah, $ruz, $sal);
+                                            
+                                            // درج در دیتابیس
+                                            $query = "INSERT INTO rinfo (pelak, zaman) VALUES (?, ?)";
+                                            $stmt = $connection->prepare($query);
+                                            $stmt->bind_param("si", $pelak, $fuda);
+                                            
+                                            if ($stmt->execute()) {
+                                                $insertedCount++;
+                                                $validRecords[] = $row;
+                                                
+                                                // نمایش ردیف با هایلایت سبز
+                                                echo '<tr class="success-row">
+                                                        <td>' . htmlspecialchars($row['row_num']) . '</td>';
+                                                
+                                                foreach ($row as $colName => $value) {
+                                                    if ($colName !== 'row_num') {
+                                                        echo '<td>' . htmlspecialchars($value) . '</td>';
+                                                    }
+                                                }
+                                                
+                                                echo '<td class="text-success">✅ ذخیره شد</td></tr>';
+                                            }
+                                            $stmt->close();
+                                        }
+                                    }
                                 }
                             }
-                            
-                            echo '</tr>';
                         }
                         
                         echo '        </tbody>
                                 </table>
                               </div>';
+                        
+                        // نمایش خلاصه نتایج
+                        echo '<div class="alert alert-success">تعداد رکوردهای ذخیره شده در دیتابیس: ' . $insertedCount . '</div>';
+                        
+                        // به‌روزرسانی زمان سیستم
+                        $rr = time();
+                        $updateQuery = "UPDATE rhas SET zamansys = ? WHERE id = 1";
+                        $stmt = $connection->prepare($updateQuery);
+                        $stmt->bind_param("i", $rr);
+                        $stmt->execute();
+                        $stmt->close();
+                        
+                        // حذف فایل اکسل پس از پردازش
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                            echo '<div class="alert alert-info">فایل اکسل پس از پردازش حذف شد</div>';
+                        }
                     }
 
+                    mysqli_close($connection);
+
                 } catch (Exception $e) {
+                    // حذف فایل در صورت خطا
+                    if (isset($filePath) && file_exists($filePath)) {
+                        unlink($filePath);
+                    }
                     echo '<div class="alert alert-danger">خطا: ' . $e->getMessage() . '</div>';
                 }
-				
-				
-							
             }
-			
-			
-			//print_r($processedData);
-			
-			
-	
-				
-	
-				
-				foreach ($processedData as $row) {
-					$keys = array_keys($row);
-					if (isset($keys[2])) { // اندیس 2 برای ستون سوم
-						$thirdColumnValue = $row[$keys[2]];
-						//$tarikh=$row[$keys[2]];
-						
-						$pelak=$row[$keys[1]];
-						
-						$tarikh2="14".$row[$keys[2]];
-						
-						$mytar=explode('/', $tarikh2);
-
-						$sal=$mytar[0];
-						$mah=$mytar[1];
-						$ruz=$mytar[2];
-						
-						
-						$saat=$row[$keys[3]];
-						$mysa=explode(':', $saat);
-						
-						$saat=$mysa[0];
-						$dag=$mysa[1];
-						
-						//echo '<p>' . htmlspecialchars($tarikh2) . '</p>'."<br>";
-						//echo $sal.":".$mah.":".$ruz."<br>";
-						
-						$fuda=jmktime($saat,$dag,0,$mah,$ruz,$sal);
-						
-						$jatayear = jdate('H:i:s ,Y/n/j',$fuda);
-	$rr=time();					
-						//echo $jatayear." -- ".$fuda."<br>";
-						mysqli_query($connection,"INSERT INTO rinfo (pelak,zaman) 
-VALUES('$pelak','$fuda')") or die(mysqli_error());
-						$updatedlbl2ow = mysqli_query($connection,"UPDATE rhas SET zamansys='$rr' WHERE id='1' ") or die(mysqli_error());
-					}
-				}
-						
-						
-mysqli_close($connection);
             ?>
         </div>
     </div>
