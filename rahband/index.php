@@ -20,7 +20,8 @@
             --danger-color: #f94144;
             --dark-color: #212529;
             --light-color: #f8f9fa;
-            --user-create-color: #7209b7; /* رنگ جدید برای دکمه ایجاد کاربر */
+            --user-create-color: #7209b7;
+            --export-color: #4895ef; /* رنگ جدید برای دکمه آپلود خروجی */
         }
         
         body {
@@ -105,7 +106,11 @@
         }
         
         .btn-user-create {
-            background-color: var(--user-create-color); /* استایل دکمه جدید */
+            background-color: var(--user-create-color);
+        }
+        
+        .btn-export {
+            background-color: var(--export-color); /* استایل دکمه جدید */
         }
         
         .header {
@@ -132,27 +137,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        .floating-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
-            transition: all 0.3s;
-        }
-        
-        .floating-btn:hover {
-            transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 12px 30px rgba(67, 97, 238, 0.6);
-        }
-        
         .feature-icon {
             font-size: 1.5rem;
             margin-left: 10px;
@@ -163,38 +147,11 @@
             transform: scale(1.2);
         }
         
-        footer {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 40px;
-        }
-        
-        .welcome-text {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .welcome-text::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            right: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
-        }
-        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .btn-custom {
                 padding: 12px 20px;
                 font-size: 14px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
             }
         }
     </style>
@@ -207,7 +164,7 @@
                 <h1 class="display-4 fw-bold mb-3">
                     <i class="fas fa-truck-moving me-3"></i>پنل مدیریت کامیون‌ها
                 </h1>
-                <p class="lead mb-0 welcome-text">سیستم هوشمند رهگیری و گزارش پلاک کامیون‌ها</p>
+                <p class="lead mb-0">سیستم هوشمند رهگیری و گزارش پلاک کامیون‌ها</p>
             </div>
         </header>
 
@@ -265,10 +222,17 @@
                             </a>
                         </div>
                         
-                        <!-- دکمه جدید: ایجاد کاربر -->
+                        <!-- دکمه ایجاد کاربر -->
                         <div class="col-md-3 col-6 mt-3">
                             <a href="create_user.php" class="btn btn-user-create btn-custom w-100">
                                 <i class="fas fa-user-plus feature-icon"></i>ایجاد کاربر جدید
+                            </a>
+                        </div>
+                        
+                        <!-- دکمه جدید: آپلود فایل خروجی -->
+                        <div class="col-md-3 col-6 mt-3">
+                            <a href="upload2.php" class="btn btn-export btn-custom w-100">
+                                <i class="fas fa-file-export feature-icon"></i>آپلود فایل خروجی
                             </a>
                         </div>
                     </div>
@@ -276,27 +240,19 @@
             </div>
         </div>
 
+        <?php
+        include_once('ca.php');
 
-<?php
+        $query_rinfo_count = "SELECT COUNT(*) as total FROM rinfo WHERE id > 0";
+        $result_rinfo = mysqli_query($connection, $query_rinfo_count);
+        $rinfo_count = mysqli_fetch_assoc($result_rinfo)['total'];
 
-include_once('ca.php');
+        $query_rkarbar_count = "SELECT COUNT(*) as total FROM rkarbar WHERE id > 0";
+        $result_rkarbar = mysqli_query($connection, $query_rkarbar_count);
+        $rkarbar_count = mysqli_fetch_assoc($result_rkarbar)['total'];
 
-$query_rinfo_count = "SELECT COUNT(*) as total FROM rinfo WHERE id > 0";
-$result_rinfo = mysqli_query($connection, $query_rinfo_count);
-$rinfo_count = mysqli_fetch_assoc($result_rinfo)['total'];
-
-// محاسبه تعداد رکوردهای جدول rkarbar
-$query_rkarbar_count = "SELECT COUNT(*) as total FROM rkarbar WHERE id > 0";
-$result_rkarbar = mysqli_query($connection, $query_rkarbar_count);
-$rkarbar_count = mysqli_fetch_assoc($result_rkarbar)['total'];
-
-
-
-mysqli_close($connection);
-?>
-
-
-
+        mysqli_close($connection);
+        ?>
 
         <!-- اطلاعات آماری -->
         <div class="row mt-4 animate__animated animate__fadeIn">
@@ -304,7 +260,7 @@ mysqli_close($connection);
                 <div class="glass-card p-4 text-center h-100">
                     <i class="fas fa-truck fa-3x mb-3 text-primary"></i>
                     <h3 class="h4">تعداد کامیون‌های راهبند</h3>
-                    <p class="display-6 fw-bold"><?php echo $rinfo_count;  ?></p>
+                    <p class="display-6 fw-bold"><?php echo $rinfo_count; ?></p>
                     <small class="text-muted">آخرین بروزرسانی: امروز</small>
                 </div>
             </div>
@@ -312,7 +268,7 @@ mysqli_close($connection);
                 <div class="glass-card p-4 text-center h-100">
                     <i class="fas fa-map-marker-alt fa-3x mb-3 text-success"></i>
                     <h3 class="h4">تعداد موقعیت‌های کاربر</h3>
-                    <p class="display-6 fw-bold"><?php echo $rkarbar_count;  ?></p>
+                    <p class="display-6 fw-bold"><?php echo $rkarbar_count; ?></p>
                     <small class="text-muted">آخرین بروزرسانی: امروز</small>
                 </div>
             </div>
@@ -325,24 +281,7 @@ mysqli_close($connection);
                 </div>
             </div>
         </div>
-
-        <!-- فوتر -->
-        <footer class="text-center animate__animated animate__fadeIn">
-            <div class="d-flex justify-content-center mb-3">
-                <a href="#" class="text-dark mx-3"><i class="fab fa-telegram fa-lg"></i></a>
-                <a href="#" class="text-dark mx-3"><i class="fab fa-instagram fa-lg"></i></a>
-                <a href="#" class="text-dark mx-3"><i class="fab fa-twitter fa-lg"></i></a>
-                <a href="#" class="text-dark mx-3"><i class="fas fa-envelope fa-lg"></i></a>
-            </div>
-            <p class="mb-0">© 1404 سیستم مدیریت ناوگان حمل و نقل. تمام حقوق محفوظ است.</p>
-            <small class="text-muted">نسخه ۲.۱.۰</small>
-        </footer>
     </div>
-
-    <!-- دکمه شناور بازگشت به خانه -->
-    <a href="index.php" class="floating-btn shadow animate__animated animate__fadeIn" title="بازگشت به صفحه اصلی">
-        <i class="fas fa-home text-white fa-lg"></i>
-    </a>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -361,26 +300,5 @@ mysqli_close($connection);
             font-style: normal;
         }
     </style>
-    <script>
-        // افزودن افکت هنگام اسکرول
-        document.addEventListener('DOMContentLoaded', function() {
-            const animatedElements = document.querySelectorAll('.animate__animated');
-            
-            const animateOnScroll = () => {
-                animatedElements.forEach(element => {
-                    const elementTop = element.getBoundingClientRect().top;
-                    const windowHeight = window.innerHeight;
-                    
-                    if (elementTop < windowHeight - 100) {
-                        const animationClass = element.classList[1];
-                        element.classList.add(animationClass);
-                    }
-                });
-            };
-            
-            window.addEventListener('scroll', animateOnScroll);
-            animateOnScroll(); // اجرا در بارگذاری اولیه
-        });
-    </script>
 </body>
 </html>
