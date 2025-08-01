@@ -81,9 +81,21 @@ include_once('sar.php');
 
     if (isset($_POST['hazf']) && !empty($_POST['hazf'])) {
         mysqli_query($connection, "TRUNCATE TABLE rkarbar");
+       
+        echo '<div class="alert">اطلاعات کاربر حذف شد</div>';
+    }
+	
+	 if (isset($_POST['hazf2']) && !empty($_POST['hazf2'])) {
+        
         mysqli_query($connection, "TRUNCATE TABLE rinfo");
+		 
+        echo '<div class="alert">اطلاعات ورودی سیستم حذف شد</div>';
+    }
+	
+	 if (isset($_POST['hazf3']) && !empty($_POST['hazf3'])) {
+      
 		 mysqli_query($connection, "TRUNCATE TABLE rinfo2");
-        echo '<div class="alert">تمام اطلاعات حذف شد</div>';
+        echo '<div class="alert">اطلاعات خروجی های سیستم حذف شد</div>';
     }
     ?>
     
@@ -92,6 +104,16 @@ include_once('sar.php');
     <form action="resk.php" method="post">
         <input type="hidden" name="hazf" value="hazf">
         <input type="submit" value="حذف تمام ورودی های کاربر" class="btn">
+    </form>
+	<hr>
+	 <form action="resk.php" method="post">
+        <input type="hidden" name="hazf2" value="hazf2">
+        <input type="submit" value="حذف تمام ورودی های سیستم راهبند" class="btn">
+    </form>
+	<hr>
+	 <form action="resk.php" method="post">
+        <input type="hidden" name="hazf3" value="hazf3">
+        <input type="submit" value="حذف تمام خروجی های سیستم راهبند" class="btn">
     </form>
 </div>
 
