@@ -1,9 +1,9 @@
 <?php
 session_start();
-include_once('sar.php'); //ادرس فایل های بوت استرپ و ضروری
+include_once('sar.php');
 include_once('aval.php');
-include_once('jdf.php'); //تابع امکانات تاریخ شمسی
-include_once('ca.php'); //پایگاه داده
+include_once('jdf.php');
+include_once('ca.php');
 
 function checkPelakInRghabz($connection, $pelak) {
     $query = "SELECT id FROM rghabz WHERE pelak = '$pelak' AND act = 1 LIMIT 1";
@@ -11,30 +11,82 @@ function checkPelakInRghabz($connection, $pelak) {
     return (mysqli_num_rows($result) > 0);
 }
 
-// تابع جدید: بررسی وجود پلاک در جدول raha با act=1
 function checkPelakInRaha($connection, $pelak) {
-    $query = "SELECT id FROM raha WHERE pelak = '$pelak' AND act = 1 LIMIT 1";
+    $query = "SELECT id, act FROM raha WHERE pelak = '$pelak' LIMIT 1";
     $result = mysqli_query($connection, $query);
-    return (mysqli_num_rows($result) > 0);
+    if(mysqli_num_rows($result) {
+        $row = mysqli_fetch_assoc($result);
+        return $row['act'] == 1;
+    }
+    return false;
 }
 
-// تابع جدید: ثبت پلاک در جدول raha
-function registerPelakInRaha($connection, $pelak, $zaman) {
-    $query = "INSERT INTO raha (pelak, act, zaman, shomare) VALUES ('$pelak', 1, 0, 0)";
-    return mysqli_query($connection, $query);
-}
-
-// تابع جدید: بررسی وجود پلاک در جدول elsagh با act=1
 function checkPelakInElsagh($connection, $pelak) {
-    $query = "SELECT id FROM elsagh WHERE pelak = '$pelak' AND act = 1 LIMIT 1";
+    $query = "SELECT id, act FROM elsagh WHERE pelak = '$pelak' LIMIT 1";
     $result = mysqli_query($connection, $query);
-    return (mysqli_num_rows($result) > 0);
+    if(mysqli_num_rows($result)) {
+        $row = mysqli_fetch_assoc($result);
+        return $row['act'] == 1;
+    }
+    return false;
 }
 
-// تابع جدید: ثبت پلاک در جدول elsagh
-function registerPelakInElsagh($connection, $pelak) {
-    $query = "INSERT INTO elsagh (pelak, act, zaman) VALUES ('$pelak', 1, 0)";
-    return mysqli_query($connection, $query);
+function getPelakZamanFromRinfo($connection, $pelak) {
+    $query = "SELECT zaman FROM rinfo WHERE pelak = '$pelak' LIMIT 1";
+    $result = mysqli_query($connection, $query);
+    if(mysqli_num_rows($result)) {
+        $row = mysqli_fetch_assoc($result);
+        return $row['zaman'];
+    }
+    return 0;
+}
+
+// پردازش فرم POST برای رها شده‌ها
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) {
+    if($_POST['action'] == 'add_raha' && isset($_POST['pelak'])) {
+        $pelak = mysqli_real_escape_string($connection, $_POST['pelak']);
+        $zaman = getPelakZamanFromRinfo($connection, $pelak);
+        
+        // بررسی وجود پلاک در جدول raha
+        $query = "SELECT id FROM raha WHERE pelak = '$pelak' LIMIT 1";
+        $result = mysqli_query($connection, $query);
+        
+        if(mysqli_num_rows($result)) {
+            // اگر وجود داشت، act را 1 می‌کنیم
+            $query = "UPDATE raha SET act = 1, zaman = $zaman WHERE pelak = '$pelak'";
+        } else {
+            // اگر وجود نداشت، رکورد جدید می‌سازیم
+            $query = "INSERT INTO raha (pelak, act, zaman, shomare) VALUES ('$pelak', 1, $zaman, 0)";
+        }
+        
+        mysqli_query($connection, $query) or die(mysqli_error($connection));
+        $_SESSION['success_message'] = 'پلاک با موفقیت به عنوان رها شده ثبت شد';
+        header("Location: rep.php");
+        exit();
+    }
+    
+    // پردازش فرم POST برای الصاق شده‌ها
+    if($_POST['action'] == 'add_elsagh' && isset($_POST['pelak'])) {
+        $pelak = mysqli_real_escape_string($connection, $_POST['pelak']);
+        $zaman = getPelakZamanFromRinfo($connection, $pelak);
+        
+        // بررسی وجود پلاک در جدول elsagh
+        $query = "SELECT id FROM elsagh WHERE pelak = '$pelak' LIMIT 1";
+        $result = mysqli_query($connection, $query);
+        
+        if(mysqli_num_rows($result)) {
+            // اگر وجود داشت، act را 1 می‌کنیم
+            $query = "UPDATE elsagh SET act = 1, zaman = $zaman WHERE pelak = '$pelak'";
+        } else {
+            // اگر وجود نداشت، رکورد جدید می‌سازیم
+            $query = "INSERT INTO elsagh (pelak, act, zaman) VALUES ('$pelak', 1, $zaman)";
+        }
+        
+        mysqli_query($connection, $query) or die(mysqli_error($connection));
+        $_SESSION['success_message'] = 'پلاک با موفقیت به عنوان الصاق شده ثبت شد';
+        header("Location: rep.php");
+        exit();
+    }
 }
 
 if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
@@ -47,30 +99,6 @@ if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
             پلاک با موفقیت تمدید شد.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>';
-    }
-}
-
-// پردازش ثبت پلاک در جدول raha
-if(isset($_GET['register_raha']) && !empty($_GET['register_raha'])) {
-   
-	
-	    $pelak = mysqli_real_escape_string($connection, $_GET['register_raha']);
-    
-    if(registerPelakInRaha($connection, $pelak)) {
-        $_SESSION['success_message'] = 'پلاک با موفقیت به عنوان رها شده ثبت شد.';
-        header("Location: rep.php");
-        exit();
-    }
-}
-
-// پردازش ثبت پلاک در جدول elsagh
-if(isset($_GET['register_elsagh']) && !empty($_GET['register_elsagh'])) {
-    $pelak = mysqli_real_escape_string($connection, $_GET['register_elsagh']);
-    
-    if(registerPelakInElsagh($connection, $pelak)) {
-        $_SESSION['success_message'] = 'پلاک با موفقیت به عنوان الصاق شده ثبت شد.';
-        header("Location: rep.php");
-        exit();
     }
 }
 ?>
@@ -86,6 +114,7 @@ if(isset($_GET['register_elsagh']) && !empty($_GET['register_elsagh'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        /* استایل‌های قبلی بدون تغییر باقی می‌مانند */
         body {
             background-color: #f8f9fa;
             font-family: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,10 +137,10 @@ if(isset($_GET['register_elsagh']) && !empty($_GET['register_elsagh'])) {
         .edit-btn:hover { background-color: #138496; color: white; transform: scale(1.05); }
         .renew-btn { background-color: #fd7e14; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s;}
         .renew-btn:hover { background-color: #e36209; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
-        .release-btn { background-color: #6f42c1; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 3px; display: block; width: 100%;}
-        .release-btn:hover { background-color: #5a32a3; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
-        .attach-btn { background-color: #20c997; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 3px; display: block; width: 100%;}
-        .attach-btn:hover { background-color: #199d7a; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
+        .add-raha-btn { background-color: #ffc107; color: #212529; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 5px; }
+        .add-raha-btn:hover { background-color: #e0a800; transform: scale(1.05); }
+        .add-elsagh-btn { background-color: #28a745; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 5px; }
+        .add-elsagh-btn:hover { background-color: #218838; transform: scale(1.05); }
         #map-modal .modal-dialog { max-width: 90%; height: 90vh;}
         #map-modal .modal-content { height: 100%;}
         #map-container { height: 100%; min-height: 500px;}
@@ -124,27 +153,9 @@ if(isset($_GET['register_elsagh']) && !empty($_GET['register_elsagh'])) {
             .table-responsive { overflow-x: auto;}
             #map-modal .modal-dialog { max-width: 100%; height: 80vh; margin: 10px;}
             .table-custom th { font-size: 0.9rem; padding: 8px;}
-            .renew-btn, .release-btn, .attach-btn { margin-top: 5px; display: block; width: 100%;}
+            .renew-btn, .add-raha-btn, .add-elsagh-btn { margin-top: 5px; display: block; width: 100%;}
         }
         @font-face { font-family: Vazir; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');}
-		.release-btn {
-    background-color: #6f42c1; 
-    color: white; 
-    border: none; 
-    padding: 3px 8px; 
-    border-radius: 4px; 
-    font-size: 0.75rem; 
-    cursor: pointer; 
-    transition: all 0.3s; 
-    margin-top: 3px; 
-    display: block; 
-    width: 100%;
-}
-.release-btn:hover {
-    background-color: #5a32a3; 
-    transform: scale(1.05); 
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
     </style>
 </head>
 <body>
@@ -167,10 +178,17 @@ if(isset($_GET['register_elsagh']) && !empty($_GET['register_elsagh'])) {
 
 <div class="container">
 <?php
+if(isset($_SESSION['success_message'])) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+            '.$_SESSION['success_message'].'
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>';
+    unset($_SESSION['success_message']);
+}
+
 if(isset($success_message)) echo $success_message;
 
-// ... (باقی کدهای آماده‌سازی متغیرها هیچ تغییری نکرده و سرجایش است تا پایین جدول)
-
+// کدهای قبلی آماده‌سازی متغیرها بدون تغییر باقی می‌مانند
 $queryfodi = mysqli_query($connection,"SELECT * FROM rhas WHERE id=1") or die(mysqli_error());
 $countf = mysqli_num_rows($queryfodi);
 if($countf>0){
@@ -205,6 +223,7 @@ $pelak_coordinates = array();
 $released_status = array();
 $zaman_karbar = array();
 $rkarbar_ids = array();
+$barchasb_status = array();
 
 $queryfodi2 = mysqli_query($connection,"SELECT * FROM rkarbar WHERE id>0") or die(mysqli_error());
 $countf2 = mysqli_num_rows($queryfodi2);
@@ -220,6 +239,7 @@ if($countf2>0){
             );
         }
         $released_status[$fodstk2['pelak']] = ($fodstk2['raha'] == 1) ? true : false;
+        $barchasb_status[$fodstk2['pelak']] = ($fodstk2['barchasb'] == 1) ? true : false;
     }
 }
 
@@ -239,6 +259,7 @@ $total_pelak = $max_length;
 $verified_pelak = count($array1);
 $expired_pelak = 0;
 $released_count = count(array_filter($released_status));
+$attached_count = count(array_filter($barchasb_status));
 
 if(isset($array1)) {
     foreach($array1 as $pelak) {
@@ -320,27 +341,19 @@ if(isset($array1)) {
                 <?php foreach($array1 as $pelak): ?>
                     <tr>
                         <td class="copy-column">
-            <?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
-                <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
-                <?php 
-                    // شرایط نمایش دکمه ثبت رها شده
-                    $show_release_button = false;
-                    if(
-                       $released_status[$pelak] && 
-                       !checkPelakInRaha($connection, $pelak)) {
-                        $show_release_button = true;
-                    }
-                    
-                    if($show_release_button): 
-                ?>
-                    <button class="release-btn" onclick="registerRaha('<?php echo $pelak; ?>')">
-                        <i class="fas fa-plus-circle me-1"></i>ثبت رها شده
-                    </button>
-                <?php endif; ?>
-            <?php else: ?>
-                <span class="no-data">--</span>
-            <?php endif; ?>
-        </td>
+                            <?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
+                                <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
+                                <?php if(!checkPelakInRaha($connection, $pelak)): ?>
+                                    <form method="post" action="rep.php" style="display: inline;">
+                                        <input type="hidden" name="action" value="add_raha">
+                                        <input type="hidden" name="pelak" value="<?php echo $pelak; ?>">
+                                        <button type="submit" class="add-raha-btn"><i class="fas fa-plus-circle me-1"></i>ثبت رها شده</button>
+                                    </form>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="no-data">--</span>
+                            <?php endif; ?>
+                        </td>
                         <td class="copy-column">
                             <?php 
                                 if(isset($zaman_karbar[$pelak])) {
@@ -388,23 +401,14 @@ if(isset($array1)) {
                                 }
                                 if($barchasb == 1){
                                     echo '<span class="badge badge-attached"><i class="fas fa-tag me-1"></i>الصاق شده</span>';
-                                    
-                                    // بررسی شرایط برای نمایش دکمه ثبت الصاقیه
-                                    $show_attach_button = false;
-                                    if( 
-                                       $barchasb == 1 && 
-                                       !checkPelakInElsagh($connection, $pelak)) {
-                                        $show_attach_button = true;
-                                    }
-                                    
-                                    if($show_attach_button): 
-                                ?>
-                                    <button class="attach-btn" onclick="registerElsagh('<?php echo $pelak; ?>')">
-                                        <i class="fas fa-tag me-1"></i>ثبت الصاقیه
-                                    </button>
-                                <?php endif; ?>
-                                <?php
-                                } else {
+                                    <?php if(!checkPelakInElsagh($connection, $pelak)): ?>
+                                        <form method="post" action="rep.php" style="display: inline;">
+                                            <input type="hidden" name="action" value="add_elsagh">
+                                            <input type="hidden" name="pelak" value="<?php echo $pelak; ?>">
+                                            <button type="submit" class="add-elsagh-btn"><i class="fas fa-plus-circle me-1"></i>ثبت الصاقیه</button>
+                                        </form>
+                                    <?php endif; ?>
+                                <?php } else {
                                     echo '<span class="badge badge-not-attached"><i class="fas fa-times-circle me-1"></i>الصاق نشده</span>';
                                 }
                             }
@@ -439,45 +443,76 @@ if(isset($array1)) {
                         <?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>
+                
                 <?php foreach($array2 as $pelak): ?>
                     <tr>
-                        <td class="copy-column"><span class="no-data">--</span></td>
+                        <td class="copy-column"><?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
+                            <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
+                            <?php if(!checkPelakInRaha($connection, $pelak)): ?>
+                                <form method="post" action="rep.php" style="display: inline;">
+                                    <input type="hidden" name="action" value="add_raha">
+                                    <input type="hidden" name="pelak" value="<?php echo $pelak; ?>">
+                                    <button type="submit" class="add-raha-btn"><i class="fas fa-plus-circle me-1"></i>ثبت رها شده</button>
+                                </form>
+                            <?php endif; ?>
+                        <?php else: ?><span class="no-data">--</span><?php endif; ?></td>
                         <td class="copy-column"><span class="no-data">--</span></td>
                         <td class="copy-exit-column"><?= getPelakExitJalali($connection, $pelak); ?></td>
                         <td class="status-cell copy-status-column">
-                            <?php
-                            $queryfodi = mysqli_query($connection,"SELECT * FROM rinfo WHERE pelak='$pelak'") or die(mysqli_error());
-                            if(mysqli_num_rows($queryfodi) > 0){
-                                $fodstk = mysqli_fetch_array($queryfodi);
-                                $zaman = $fodstk['zaman'];
-                                $ekht = time() - $zaman;
-                                $ehkch = floor($ekht/3600);
-                                echo '<span class="copy-text">' . $ehkch . ' ساعت </span>';
-                                if($ekht > $rib){
-                                    echo '<span class="badge badge-expired"><i class="fas fa-exclamation-triangle me-1"></i>منقضی</span>';
-                                    if(!checkPelakInRghabz($connection, $pelak)) {
-                                        echo '<button class="renew-btn" onclick="renewPelak(\''.$pelak.'\')"><i class="fas fa-redo me-1"></i>تمدید</button>';
-                                    }
-                                } else {
-                                    echo '<span class="badge badge-valid"><i class="fas fa-check-circle me-1"></i>معتبر</span>';
-                                }
+                        <?php
+                        $queryfodi = mysqli_query($connection,"SELECT * FROM rinfo WHERE pelak='$pelak'") or die(mysqli_error());
+                        $countf = mysqli_num_rows($queryfodi);
+                        if($countf>0){
+                            while($fodstk = mysqli_fetch_array($queryfodi)) { 
+                                $zaman = $fodstk['zaman'];    
                             }
-                            ?>
+                            $ekht = time() - $zaman;
+                            $ehkch = floor($ekht/3600);
+                            echo '<span class="copy-text">' . $ehkch . ' ساعت </span>';
+                            if($ekht > $rib){
+                                echo '<span class="badge badge-expired"><i class="fas fa-exclamation-triangle me-1"></i>منقضی</span>';
+                                $is_in_rghabz = checkPelakInRghabz($connection, $pelak);
+                                if(!$is_in_rghabz) {
+                                    echo '<button class="renew-btn" onclick="renewPelak(\''.$pelak.'\')"><i class="fas fa-redo me-1"></i>تمدید</button>';
+                                }
+                            } else {
+                                echo '<span class="badge badge-valid"><i class="fas fa-check-circle me-1"></i>معتبر</span>';
+                            }
+                        }
+                        ?>
                         </td>
                         <td class="copy-column"><span class="no-data">--</span></td>
                         <td class="copy-column"><span class="no-data">--</span></td>
                         <td class="copy-column"><span class="no-data">--</span></td>
                         <td class="copy-column">
-                            <?php echo $pelak; ?>
+                            <?php if(isset($pelak_coordinates[$pelak])): ?>
+                                <span class="pelak-link" onclick="showOnMap('<?php echo $pelak; ?>', <?php echo $pelak_coordinates[$pelak]['lat']; ?>, <?php echo $pelak_coordinates[$pelak]['lng']; ?>)">
+                                    <?php echo $pelak; ?>
+                                </span>
+                            <?php else: ?>
+                                <?php echo $pelak; ?>
+                            <?php endif; ?>
                         </td>
                         <td class="copy-column"><span class="no-data">--</span></td>
-                        <td><span class="no-data">--</span></td>
-                    
+                        <td><?php if(isset($rkarbar_ids[$pelak])): ?>
+                            <a href="edit_rkarbar.php?id=<?php echo $rkarbar_ids[$pelak]; ?>" class="edit-btn" title="ویرایش"><i class="fas fa-edit"></i></a>
+                        <?php else: ?><span class="no-data">--</span>
+                        <?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>
+                
                 <?php foreach($array3 as $pelak): ?>
                     <tr>
-                        <td class="copy-column"><?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?><span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span><?php else: ?><span class="no-data">--</span><?php endif; ?></td>
+                        <td class="copy-column"><?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
+                            <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
+                            <?php if(!checkPelakInRaha($connection, $pelak)): ?>
+                                <form method="post" action="rep.php" style="display: inline;">
+                                    <input type="hidden" name="action" value="add_raha">
+                                    <input type="hidden" name="pelak" value="<?php echo $pelak; ?>">
+                                    <button type="submit" class="add-raha-btn"><i class="fas fa-plus-circle me-1"></i>ثبت رها شده</button>
+                                </form>
+                            <?php endif; ?>
+                        <?php else: ?><span class="no-data">--</span><?php endif; ?></td>
                         <td class="copy-column"><?php if(isset($zaman_karbar[$pelak])) { echo tr_num(jdate('H:i:s', $zaman_karbar[$pelak])); } else { echo '<span class="no-data">--</span>'; } ?></td>
                         <td class="copy-exit-column"><?= getPelakExitJalali($connection, $pelak); ?></td>
                         <td class="status-cell"><span class="no-data">--</span></td>
@@ -489,23 +524,14 @@ if(isset($array1)) {
                             while($fodstk = mysqli_fetch_array($queryfodi)) { $barchasb = $fodstk['barchasb']; }
                             if($barchasb == 1){
                                 echo '<span class="badge badge-attached"><i class="fas fa-tag me-1"></i>الصاق شده</span>';
-                                
-                                // بررسی شرایط برای نمایش دکمه ثبت الصاقیه
-                                $show_attach_button = false;
-                                if( 
-                                   $barchasb == 1 && 
-                                   !checkPelakInElsagh($connection, $pelak)) {
-                                    $show_attach_button = true;
-                                }
-                                
-                                if($show_attach_button): 
-                            ?>
-                                <button class="attach-btn" onclick="registerElsagh('<?php echo $pelak; ?>')">
-                                    <i class="fas fa-tag me-1"></i>ثبت الصاقیه
-                                </button>
-                            <?php endif; ?>
-                            <?php
-                            } else {
+                                <?php if(!checkPelakInElsagh($connection, $pelak)): ?>
+                                    <form method="post" action="rep.php" style="display: inline;">
+                                        <input type="hidden" name="action" value="add_elsagh">
+                                        <input type="hidden" name="pelak" value="<?php echo $pelak; ?>">
+                                        <button type="submit" class="add-elsagh-btn"><i class="fas fa-plus-circle me-1"></i>ثبت الصاقیه</button>
+                                    </form>
+                                <?php endif; ?>
+                            <?php } else {
                                 echo '<span class="badge badge-not-attached"><i class="fas fa-times-circle me-1"></i>الصاق نشده</span>';
                             }
                         }
@@ -544,6 +570,7 @@ if(isset($array1)) {
     </div>
 </div>
 
+<!-- مودال نمایش نقشه -->
 <div class="modal fade" id="map-modal" tabindex="-1" aria-labelledby="map-modal-label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -578,6 +605,7 @@ function showOnMap(pelak, lat, lng) {
         const marker = L.marker([lat, lng]).addTo(window.map).bindPopup(`<b>پلاک:</b> ${pelak}<br><b>مختصات:</b> ${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
     }, 500);
 }
+
 function copyColumn(columnIndex) {
     const table = document.getElementById('pelak-table');
     const rows = table.querySelectorAll('tbody tr');
@@ -606,23 +634,13 @@ function copyColumn(columnIndex) {
         showToast('ستون با موفقیت کپی شد');
     }).catch(err => { showToast('خطا در کپی کردن', 'error'); });
 }
+
 function renewPelak(pelak) {
     if(confirm('آیا از ثبت دایم قبض انبار برای پلاک ' + pelak + ' اطمینان دارید؟')) {
         window.location.href = '?renew_pelak=' + encodeURIComponent(pelak);
     }
 }
-// تابع جدید برای ثبت رها شده
-function registerRaha(pelak) {
-    if(confirm('آیا از ثبت این پلاک به عنوان رها شده اطمینان دارید؟')) {
-        window.location.href = '?register_raha=' + encodeURIComponent(pelak);
-    }
-}
-// تابع جدید برای ثبت الصاقیه
-function registerElsagh(pelak) {
-    if(confirm('آیا از ثبت این پلاک به عنوان الصاق شده اطمینان دارید؟')) {
-        window.location.href = '?register_elsagh=' + encodeURIComponent(pelak);
-    }
-}
+
 function showToast(message, type = 'success') {
     const toastContainer = document.querySelector('.toast-container');
     const toastId = 'toast-' + Date.now();
@@ -634,6 +652,7 @@ function showToast(message, type = 'success') {
     toastContainer.appendChild(toast);
     setTimeout(() => { const toastElement = document.getElementById(toastId); if (toastElement) { toastElement.classList.remove('show'); setTimeout(() => { toastElement.remove(); }, 300); } }, 3000);
 }
+
 document.addEventListener('DOMContentLoaded', function() {
     const copyColumnHeaders = document.querySelectorAll('.copy-column-header, .copy-status-header, .copy-exit-header');
     copyColumnHeaders.forEach((header, index) => { header.addEventListener('click', function(e) { e.stopPropagation(); copyColumn(index); }); });
