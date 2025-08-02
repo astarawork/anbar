@@ -15,7 +15,7 @@ if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
     $pelak = mysqli_real_escape_string($connection, $_GET['renew_pelak']);
     if(!checkPelakInRghabz($connection, $pelak)) {
         $time = time();
-        $query = "INSERT INTO rghabz (pelak, act, zaman) VALUES ('$pelak', 1, $time)";
+        $query = "INSERT INTO rghabz (pelak, act, zaman, shomare,vaziat) VALUES ('$pelak', 1, $time,0,0)";
         mysqli_query($connection, $query) or die(mysqli_error($connection));
         $success_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
             پلاک با موفقیت تمدید شد.
