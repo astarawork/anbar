@@ -193,7 +193,7 @@ include_once('aval.php');
                         echo '<div class="alert alert-warning">فایل اکسل خالی است یا قابل پردازش نمی‌باشد</div>';
                     } else {
                         // خالی کردن جدول rinfo قبل از درج رکوردهای جدید
-                        mysqli_query($connection, "TRUNCATE TABLE rinfo");
+                        //mysqli_query($connection, "TRUNCATE TABLE rinfo");
                         
                         // آرایه برای ذخیره رکوردهای معتبر
                         $validRecords = [];
