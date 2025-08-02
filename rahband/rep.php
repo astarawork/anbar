@@ -1,9 +1,9 @@
 <?php
 session_start();
-include_once('sar.php');
+include_once('sar.php'); //ادرس فایل های بوت استرپ و ضروری
 include_once('aval.php');
-include_once('jdf.php');
-include_once('ca.php');
+include_once('jdf.php'); //تابع امکانات تاریخ شمسی
+include_once('ca.php'); //پایگاه داده
 
 function checkPelakInRghabz($connection, $pelak) {
     $query = "SELECT id FROM rghabz WHERE pelak = '$pelak' AND act = 1 LIMIT 1";
@@ -11,20 +11,17 @@ function checkPelakInRghabz($connection, $pelak) {
     return (mysqli_num_rows($result) > 0);
 }
 
+// تابع جدید: بررسی وجود پلاک در جدول raha با act=1
 function checkPelakInRaha($connection, $pelak) {
-    $query = "SELECT id FROM raha WHERE pelak = '$pelak' LIMIT 1";
+    $query = "SELECT id FROM raha WHERE pelak = '$pelak' AND act = 1 LIMIT 1";
     $result = mysqli_query($connection, $query);
     return (mysqli_num_rows($result) > 0);
 }
 
-function checkRahaInRkarbar($connection, $pelak) {
-    $query = "SELECT raha FROM rkarbar WHERE pelak = '$pelak' LIMIT 1";
-    $result = mysqli_query($connection, $query);
-    if(mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-        return $row['raha'] == 1;
-    }
-    return false;
+// تابع جدید: ثبت پلاک در جدول raha
+function registerPelakInRaha($connection, $pelak, $zaman) {
+    $query = "INSERT INTO raha (pelak, act, zaman, shomare) VALUES ('$pelak', 1, $zaman, 0)";
+    return mysqli_query($connection, $query);
 }
 
 if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
@@ -40,23 +37,20 @@ if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
     }
 }
 
-if(isset($_GET['add_to_raha']) && !empty($_GET['add_to_raha'])) {
-    $pelak = mysqli_real_escape_string($connection, $_GET['add_to_raha']);
-    if(checkPelakInRghabz($connection, $pelak) && 
-       checkRahaInRkarbar($connection, $pelak) && 
-       !checkPelakInRaha($connection, $pelak)) {
+// پردازش ثبت پلاک در جدول raha
+if(isset($_GET['register_raha']) && !empty($_GET['register_raha'])) {
+    $pelak = mysqli_real_escape_string($connection, $_GET['register_raha']);
+    
+    // دریافت زمان از جدول rinfo
+    $query = "SELECT zaman FROM rinfo WHERE pelak = '$pelak' ORDER BY zaman DESC LIMIT 1";
+    $result = mysqli_query($connection, $query);
+    if(mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $zaman = $row['zaman'];
         
-        // دریافت زمان از جدول rinfo
-        $query = "SELECT zaman FROM rinfo WHERE pelak = '$pelak' ORDER BY id DESC LIMIT 1";
-        $result = mysqli_query($connection, $query);
-        if(mysqli_num_rows($result) > 0) {
-            $row = mysqli_fetch_assoc($result);
-            $zaman = $row['zaman'];
-            
-            $query = "INSERT INTO raha (pelak, act, zaman, shomare) VALUES ('$pelak', 1, $zaman, 0)";
-            mysqli_query($connection, $query) or die(mysqli_error($connection));
+        if(registerPelakInRaha($connection, $pelak, $zaman)) {
             $success_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
-                پلاک با موفقیت به لیست رها شده ها اضافه شد.
+                پلاک با موفقیت به عنوان رها شده ثبت شد.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>';
         }
@@ -97,8 +91,8 @@ if(isset($_GET['add_to_raha']) && !empty($_GET['add_to_raha'])) {
         .edit-btn:hover { background-color: #138496; color: white; transform: scale(1.05); }
         .renew-btn { background-color: #fd7e14; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s;}
         .renew-btn:hover { background-color: #e36209; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
-        .add-raha-btn { background-color: #6f42c1; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 5px;}
-        .add-raha-btn:hover { background-color: #5a32a3; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
+        .release-btn { background-color: #6f42c1; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 3px; display: block; width: 100%;}
+        .release-btn:hover { background-color: #5a32a3; transform: scale(1.05); box-shadow: 0 0 5px rgba(0,0,0,0.2);}
         #map-modal .modal-dialog { max-width: 90%; height: 90vh;}
         #map-modal .modal-content { height: 100%;}
         #map-container { height: 100%; min-height: 500px;}
@@ -111,7 +105,7 @@ if(isset($_GET['add_to_raha']) && !empty($_GET['add_to_raha'])) {
             .table-responsive { overflow-x: auto;}
             #map-modal .modal-dialog { max-width: 100%; height: 80vh; margin: 10px;}
             .table-custom th { font-size: 0.9rem; padding: 8px;}
-            .renew-btn, .add-raha-btn { margin-top: 5px; display: block; width: 100%;}
+            .renew-btn, .release-btn { margin-top: 5px; display: block; width: 100%;}
         }
         @font-face { font-family: Vazir; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');}
     </style>
@@ -137,6 +131,8 @@ if(isset($_GET['add_to_raha']) && !empty($_GET['add_to_raha'])) {
 <div class="container">
 <?php
 if(isset($success_message)) echo $success_message;
+
+// ... (باقی کدهای آماده‌سازی متغیرها هیچ تغییری نکرده و سرجایش است تا پایین جدول)
 
 $queryfodi = mysqli_query($connection,"SELECT * FROM rhas WHERE id=1") or die(mysqli_error());
 $countf = mysqli_num_rows($queryfodi);
@@ -287,21 +283,27 @@ if(isset($array1)) {
                 <?php foreach($array1 as $pelak): ?>
                     <tr>
                         <td class="copy-column">
-                            <?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
-                                <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
-                                <?php 
-                                if(checkPelakInRghabz($connection, $pelak) && 
-                                   $released_status[$pelak] && 
-                                   !checkPelakInRaha($connection, $pelak)): 
-                                ?>
-                                    <button class="add-raha-btn" onclick="addToRaha('<?php echo $pelak; ?>')">
-                                        <i class="fas fa-plus-circle me-1"></i>ثبت در رها شده‌ها
-                                    </button>
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <span class="no-data">--</span>
-                            <?php endif; ?>
-                        </td>
+            <?php if(isset($released_status[$pelak]) && $released_status[$pelak]): ?>
+                <span class="badge badge-released"><i class="fas fa-check-circle me-1"></i> رها شده</span>
+                <?php 
+                    // شرایط نمایش دکمه ثبت رها شده
+                    $show_release_button = false;
+                    if(checkPelakInRghabz($connection, $pelak) && 
+                       $released_status[$pelak] && 
+                       !checkPelakInRaha($connection, $pelak)) {
+                        $show_release_button = true;
+                    }
+                    
+                    if($show_release_button): 
+                ?>
+                    <button class="release-btn" onclick="registerRaha('<?php echo $pelak; ?>')">
+                        <i class="fas fa-plus-circle me-1"></i>ثبت رها شده
+                    </button>
+                <?php endif; ?>
+            <?php else: ?>
+                <span class="no-data">--</span>
+            <?php endif; ?>
+        </td>
                         <td class="copy-column">
                             <?php 
                                 if(isset($zaman_karbar[$pelak])) {
@@ -518,7 +520,6 @@ function showOnMap(pelak, lat, lng) {
         const marker = L.marker([lat, lng]).addTo(window.map).bindPopup(`<b>پلاک:</b> ${pelak}<br><b>مختصات:</b> ${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
     }, 500);
 }
-
 function copyColumn(columnIndex) {
     const table = document.getElementById('pelak-table');
     const rows = table.querySelectorAll('tbody tr');
@@ -527,7 +528,7 @@ function copyColumn(columnIndex) {
         const cells = row.cells;
         if (cells.length > columnIndex) {
             const cell = cells[columnIndex].cloneNode(true);
-            if (columnIndex === 3) {
+            if (columnIndex === 3) { // وضعیت قبض انبار (copy-status)
                 const copyText = cell.querySelector('.copy-text');
                 const badges = cell.querySelectorAll('.badge');
                 let statusText = copyText ? copyText.textContent.trim() : '';
@@ -547,19 +548,17 @@ function copyColumn(columnIndex) {
         showToast('ستون با موفقیت کپی شد');
     }).catch(err => { showToast('خطا در کپی کردن', 'error'); });
 }
-
 function renewPelak(pelak) {
     if(confirm('آیا از ثبت دایم قبض انبار برای پلاک ' + pelak + ' اطمینان دارید؟')) {
         window.location.href = '?renew_pelak=' + encodeURIComponent(pelak);
     }
 }
-
-function addToRaha(pelak) {
-    if(confirm('آیا از ثبت این پلاک در لیست رها شده‌ها اطمینان دارید؟')) {
-        window.location.href = '?add_to_raha=' + encodeURIComponent(pelak);
+// تابع جدید برای ثبت رها شده
+function registerRaha(pelak) {
+    if(confirm('آیا از ثبت این پلاک به عنوان رها شده اطمینان دارید؟')) {
+        window.location.href = '?register_raha=' + encodeURIComponent(pelak);
     }
 }
-
 function showToast(message, type = 'success') {
     const toastContainer = document.querySelector('.toast-container');
     const toastId = 'toast-' + Date.now();
@@ -571,7 +570,6 @@ function showToast(message, type = 'success') {
     toastContainer.appendChild(toast);
     setTimeout(() => { const toastElement = document.getElementById(toastId); if (toastElement) { toastElement.classList.remove('show'); setTimeout(() => { toastElement.remove(); }, 300); } }, 3000);
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const copyColumnHeaders = document.querySelectorAll('.copy-column-header, .copy-status-header, .copy-exit-header');
     copyColumnHeaders.forEach((header, index) => { header.addEventListener('click', function(e) { e.stopPropagation(); copyColumn(index); }); });
