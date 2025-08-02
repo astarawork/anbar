@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once('sar.php');
-include_once('ca.php');
+include_once('ca2.php');
 
 // بررسی لاگین بودن کاربر
 if(!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
