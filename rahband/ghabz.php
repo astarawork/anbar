@@ -1,4 +1,5 @@
 <?php
+include_once('first.php'); //بررسی ورود
 include_once('sar.php');
 include_once('ca.php');
 include_once('jdf.php');
