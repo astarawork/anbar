@@ -1,5 +1,5 @@
 <?php
-session_start();
+include_once('first.php'); //بررسی ورود
 include_once('sar.php');
 include_once('ca.php');
 
