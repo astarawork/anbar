@@ -1,3 +1,6 @@
+<?php
+include_once('first.php'); //بررسی ورود
+?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
