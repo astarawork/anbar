@@ -144,6 +144,12 @@ cleanOldFiles($uploadDir, $maxFilesToKeep);
         .success-row {
             background-color: #e8f5e9;
         }
+        .duplicate-row {
+            background-color: #fff3e0;
+        }
+        .error-row {
+            background-color: #ffebee;
+        }
     </style>
 </head>
 <body>
@@ -193,12 +199,11 @@ include_once('aval.php');
                     if (empty($processedData)) {
                         echo '<div class="alert alert-warning">فایل اکسل خالی است یا قابل پردازش نمی‌باشد</div>';
                     } else {
-                        // خالی کردن جدول rinfo قبل از درج رکوردهای جدید
-                        //mysqli_query($connection, "TRUNCATE TABLE rinfo");
-                        
                         // آرایه برای ذخیره رکوردهای معتبر
                         $validRecords = [];
                         $insertedCount = 0;
+                        $duplicateCount = 0;
+                        $errorCount = 0;
                         
                         echo '<div class="table-responsive table-container">
                                 <table class="table table-bordered table-hover">
@@ -252,28 +257,49 @@ include_once('aval.php');
                                             // تبدیل به تایمستاپ
                                             $fuda = jmktime($saat, $dag, 0, $mah, $ruz, $sal);
                                             
-                                            // درج در دیتابیس
-                                            $query = "INSERT INTO rinfo (pelak, zaman) VALUES (?, ?)";
-                                            $stmt = $connection->prepare($query);
-                                            $stmt->bind_param("si", $pelak, $fuda);
+                                            // بررسی تکراری نبودن رکورد
+                                            $checkQuery = "SELECT id FROM rinfo WHERE pelak = ? AND zaman = ? LIMIT 1";
+                                            $checkStmt = $connection->prepare($checkQuery);
+                                            $checkStmt->bind_param("si", $pelak, $fuda);
+                                            $checkStmt->execute();
+                                            $checkResult = $checkStmt->get_result();
                                             
-                                            if ($stmt->execute()) {
-                                                $insertedCount++;
-                                                $validRecords[] = $row;
+                                            if ($checkResult->num_rows > 0) {
+                                                // رکورد تکراری است
+                                                $duplicateCount++;
+                                                $rowClass = 'duplicate-row';
+                                                $statusText = '⏺ تکراری (ذخیره نشد)';
+                                            } else {
+                                                // درج در دیتابیس
+                                                $query = "INSERT INTO rinfo (pelak, zaman) VALUES (?, ?)";
+                                                $stmt = $connection->prepare($query);
+                                                $stmt->bind_param("si", $pelak, $fuda);
                                                 
-                                                // نمایش ردیف با هایلایت سبز
-                                                echo '<tr class="success-row">
-                                                        <td>' . htmlspecialchars($row['row_num']) . '</td>';
-                                                
-                                                foreach ($row as $colName => $value) {
-                                                    if ($colName !== 'row_num') {
-                                                        echo '<td>' . htmlspecialchars($value) . '</td>';
-                                                    }
+                                                if ($stmt->execute()) {
+                                                    $insertedCount++;
+                                                    $validRecords[] = $row;
+                                                    $rowClass = 'success-row';
+                                                    $statusText = '✅ ذخیره شد';
+                                                } else {
+                                                    $errorCount++;
+                                                    $rowClass = 'error-row';
+                                                    $statusText = '❌ خطا در ذخیره';
                                                 }
-                                                
-                                                echo '<td class="text-success">✅ ذخیره شد</td></tr>';
+                                                $stmt->close();
                                             }
-                                            $stmt->close();
+                                            $checkStmt->close();
+                                            
+                                            // نمایش ردیف
+                                            echo '<tr class="' . $rowClass . '">
+                                                    <td>' . htmlspecialchars($row['row_num']) . '</td>';
+                                            
+                                            foreach ($row as $colName => $value) {
+                                                if ($colName !== 'row_num') {
+                                                    echo '<td>' . htmlspecialchars($value) . '</td>';
+                                                }
+                                            }
+                                            
+                                            echo '<td>' . $statusText . '</td></tr>';
                                         }
                                     }
                                 }
@@ -286,6 +312,8 @@ include_once('aval.php');
                         
                         // نمایش خلاصه نتایج
                         echo '<div class="alert alert-success">تعداد رکوردهای ذخیره شده در دیتابیس: ' . $insertedCount . '</div>';
+                        echo '<div class="alert alert-warning">تعداد رکوردهای تکراری: ' . $duplicateCount . '</div>';
+                        echo '<div class="alert alert-danger">تعداد رکوردهای با خطا: ' . $errorCount . '</div>';
                         
                         // به‌روزرسانی زمان سیستم
                         $rr = time();
