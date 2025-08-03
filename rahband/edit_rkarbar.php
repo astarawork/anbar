@@ -1,5 +1,5 @@
 <?php
-session_start();
+include_once('first.php');
 include_once('sar.php');
 include_once('aval.php');
 include_once('jdf.php');
