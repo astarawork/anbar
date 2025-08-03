@@ -1,5 +1,5 @@
 <?php
-session_start();
+include_once('first.php'); //بررسی ورود
 include_once('sar.php'); //ادرس فایل های بوت استرپ و ضروری
 include_once('aval.php');
 include_once('jdf.php'); //تابع امکانات تاریخ شمسی
