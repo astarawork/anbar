@@ -1,4 +1,5 @@
 <?php
+include_once('first.php'); //بررسی ورود
 header('Content-Type: text/html; charset=utf-8');
 
 include_once('jdf.php');
