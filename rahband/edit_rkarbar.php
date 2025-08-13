@@ -49,6 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $query = mysqli_query($connection, "SELECT * FROM rkarbar WHERE id = $id");
     $record = mysqli_fetch_assoc($query);
 }
+
+$tasvir=$id.".jpg";
+
 ?>
 
 <!DOCTYPE html>
@@ -160,7 +163,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <label class="form-label"><i class="fas fa-clock me-1"></i>زمان ثبت</label>
                         <input type="text" class="form-control readonly-field" value="<?php echo tr_num(jdate('Y/n/j H:i:s', $record['zaman'])); ?>" readonly>
                     </div>
+					
+					
+					 <a href="https://www.anbar20.ir/rahband/uploadimage/<?php echo $tasvir; ?>" class="btn btn-primary m-2">
+					مشاهده تصویر 
+					</a>
                 </div>
+				
+
+				
             </div>
 
             <hr class="my-4">
