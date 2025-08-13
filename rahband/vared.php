@@ -12,6 +12,27 @@ if(!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 // دریافت نام کاربری از session
 $loggedin_username = $_SESSION['username'];
 
+//-ax
+$query6 = "SELECT MAX(id) as max_id FROM rkarbar";
+$result6 = mysqli_query($connection, $query6);
+$row6 = mysqli_fetch_assoc($result6);
+$next_id = ($row6['max_id'] ?? 0) + 1;
+$image_name = $next_id . '.jpg';
+
+// مسیر کامل به فایل تصویر
+$image_path = 'uploadimage/' . $image_name;
+
+// بررسی وجود فایل
+if (!file_exists($image_path)) {
+    header("Location: cam.php");
+    exit(); // حتما بعد از header از exit استفاده کنید
+}
+
+
+
+
+
+
 function convertPersianNumbersToEnglish($string) {
     $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -379,6 +400,13 @@ if(isset($_POST['type']) && !empty($_POST['type'])) {
                 font-size: 1rem;
             }
         }
+		
+		 .big-button:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+                background: linear-gradient(135deg, #8f94fb, #4e54c8);
+            }
+			
     </style>
 </head>
 <body>
@@ -386,6 +414,17 @@ if(isset($_POST['type']) && !empty($_POST['type'])) {
 <?php
 if(isset($success_message)) {
     echo $success_message;
+	    echo '
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.1);">
+        <form action="cam.php" method="post" style="text-align: center;">
+            <input type="hidden" name="s1" value="' . htmlspecialchars($next_id) . '">
+            <button type="submit" style="padding: 30px 60px; font-size: 28px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                ادامه جهت ثبت یک پلاک دیگر
+            </button>
+        </form>
+    </div>
+    ';
+	exit();
 } elseif(isset($error_message)) {
     echo $error_message;
 }
