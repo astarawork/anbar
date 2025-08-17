@@ -109,6 +109,25 @@ if(isset($_POST['type']) && !empty($_POST['type'])) {
         mysqli_stmt_execute($stmt_rinfo);
         mysqli_stmt_store_result($stmt_rinfo);
         
+		
+		//-------*********
+		 $queryfodik = mysqli_query($connection,"SELECT * FROM rghabz WHERE pelak='$pir' AND act='1'") or die(mysqli_error());
+            $countfk = mysqli_num_rows($queryfodik);
+            if($countfk>0){
+                while($fodstk = mysqli_fetch_array($queryfodik)) { 
+                    $idk = $fodstk['id'];    
+                }
+				
+				$alam=time();
+				$updater = mysqli_query($connection,"UPDATE rghabz SET zaman='$alam' WHERE id='$idk' ") or die(mysqli_error());
+            }
+		
+		
+		
+		
+		
+		//------jjjjjjj
+		
         if(mysqli_stmt_num_rows($stmt_rinfo) == 0 && !$confirmed) {
             // پلاک در rinfo وجود ندارد و کاربر هنوز تایید نکرده است
             $show_warning = true;
