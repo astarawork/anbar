@@ -931,6 +931,24 @@ if(isset($success_message)) {
     });
 </script>
 
+<!-- دکمه‌های کنترل تصویر -->
+<div class="fixed-bottom d-flex justify-content-center gap-2 p-3" style="z-index: 1030;">
+    <!-- دکمه مشاهده آخرین عکس -->
+    <button type="button" class="btn btn-sm btn-outline-primary"
+            onclick="window.open('uploadimage/<?php echo $image_name; ?>', '_blank')">
+        <i class="fas fa-eye me-1"></i> مشاهده آخرین عکس
+    </button>
+
+    <!-- دکمه حذف آخرین عکس و رفتن به cam.php -->
+    <form action="delete_last.php" method="post" style="display:inline;">
+        <input type="hidden" name="image" value="<?php echo $image_name; ?>">
+        <button type="submit" class="btn btn-sm btn-outline-danger"
+                onclick="return confirm('آیا از حذف آخرین تصویر اطمینان دارید؟')">
+            <i class="fas fa-trash me-1"></i> حذف و رفتن به دوربین
+        </button>
+    </form>
+</div>
+
 <?php
 include_once('sb/foot.php');
 ?>
