@@ -1,3 +1,5 @@
+
+
 <?php
 session_start();
 include_once('sar.php');
@@ -931,6 +933,15 @@ if(isset($success_message)) {
     });
 </script>
 
+
+
+
+<?php
+include_once('sb/foot.php');
+?>
+
+<?php
+/*
 <!-- دکمه‌های کنترل تصویر -->
 <div class="fixed-bottom d-flex justify-content-center gap-2 p-3" style="z-index: 1030;">
     <!-- دکمه مشاهده آخرین عکس -->
@@ -949,6 +960,7 @@ if(isset($success_message)) {
     </form>
 </div>
 
-<?php
-include_once('sb/foot.php');
+*/
+
+
 ?>
