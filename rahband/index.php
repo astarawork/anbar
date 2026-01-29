@@ -8,11 +8,13 @@ include_once('first.php'); //بررسی ورود
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پنل مدیریت | سیستم گزارش پلاک کامیون‌ها</title>
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://anbar20.ir/files/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<?php
+    //<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	?>
     <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://anbar20.ir/files/animate.min.css">
     <style>
         :root {
             --primary-color: #4361ee;
@@ -26,7 +28,8 @@ include_once('first.php'); //بررسی ورود
             --user-create-color: #7209b7;
             --export-color: #4895ef; /* رنگ جدید برای دکمه آپلود خروجی */
         }
-        
+
+
         body {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
@@ -289,18 +292,18 @@ include_once('first.php'); //بررسی ورود
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://anbar20.ir/files/bootstrap.bundle.min.js"></script>
     <!-- فونت وزیر برای پشتیبانی از فارسی -->
     <style>
         @font-face {
             font-family: Vazir;
-            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
+            src: url('https://anbar20.ir/files/Vazir-Bold.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
         }
         @font-face {
             font-family: Vazir;
-            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Bold.woff2') format('woff2');
+            src: url('https://anbar20.ir/files/Vazir-Bold.woff2') format('woff2');
             font-weight: bold;
             font-style: normal;
         }
