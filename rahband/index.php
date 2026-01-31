@@ -1,6 +1,7 @@
 <?php
 include_once('first.php'); //بررسی ورود
 ?>
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -15,7 +16,9 @@ include_once('first.php'); //بررسی ورود
 	?>
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://anbar20.ir/files/animate.min.css">
-    <style>
+	<link rel="stylesheet" href="https://anbar20.ir/files/all.min.css">
+    
+	<style>
         :root {
             --primary-color: #4361ee;
             --secondary-color: #3f37c9;
