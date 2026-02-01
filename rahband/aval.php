@@ -26,7 +26,7 @@
 </style>
 
 <!-- اضافه کردن فونت آیکون (Font Awesome) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="http://anbar20.ir/files/all.min.css">
 
 <!-- Bootstrap JS (اختیاری - برای افکت‌ها) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="http://anbar20.ir/files/all.min.css/bootstrap.bundle.min.js"></script>
