@@ -3,8 +3,8 @@
     <meta charset="utf-8" />
 
     <head>
-   <link rel="stylesheet" href="http://anbar20.ir/files/jalalidatepicker/dist/jalalidatepicker.min.css">
-<script type="text/javascript" src="http://anbar20.ir/files/jalalidatepicker/dist/jalalidatepicker.min.js"></script>
+   <link rel="stylesheet" href="http://anbar20.ir/jalalidatepicker/dist/jalalidatepicker.min.css">
+<script type="text/javascript" src="http://anbar20.ir/jalalidatepicker/dist/jalalidatepicker.min.js"></script>
     
 
         <script src="http://anbar20.ir/files/jquery22slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
