@@ -31,10 +31,10 @@ if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>گزارشات پلاک ها</title>
-    <link href="http://anbar20.ir/files/bootstrap.min.css" rel="stylesheet">
-    <link href="http://anbar20.ir/files/bootstrap-rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="http://anbar20.ir/files/all.min.css">
-    <link rel="stylesheet" href="http://anbar20.ir/files/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-rtl@5.3.0/dist/css/bootstrap-rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body {
             background-color: #f8f9fa;
@@ -72,7 +72,7 @@ if(isset($_GET['renew_pelak']) && !empty($_GET['renew_pelak'])) {
             .table-custom th { font-size: 0.9rem; padding: 8px;}
             .renew-btn { margin-top: 5px; display: block; width: 100%;}
         }
-        @font-face { font-family: Vazir; src: url('https://anbar20.ir/files/Vazir-bold.woff2') format('woff2');}
+        @font-face { font-family: Vazir; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');}
     </style>
 </head>
 <body>
@@ -463,9 +463,9 @@ if(isset($array1)) {
     </div>
 </div>
 <div class="toast-container"></div>
-<script src="http://anbar20.ir/files/bootstrap.bundle.min.js"></script>
-<script src="http://anbar20.ir/files/all.min.js"></script>
-<script src="http://anbar20.ir/files/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 function showOnMap(pelak, lat, lng) {
     document.getElementById('modal-pelak').textContent = pelak;
